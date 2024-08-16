@@ -1,0 +1,14 @@
+# Use a smaller base image
+FROM python:3.9-slim
+
+# Set the working directory to /app
+WORKDIR /app
+
+# Copy only the necessary files into the container
+COPY aws-secret.py /app/
+
+# Install only the required Python packages
+RUN pip install --no-cache-dir boto3 kubernetes
+
+# Run aws-secret.py when the container launches
+CMD ["python", "./aws-secret.py"]
