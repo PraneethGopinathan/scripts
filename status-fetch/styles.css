@@ -1,0 +1,238 @@
+/* Existing CSS Styles */
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #0d1117;
+    color: #c9d1d9;
+    margin: 0;
+    padding: 0;
+}
+
+.timer-container {
+    text-align: center;
+    margin: 1% auto; /* Center horizontally with auto */
+    width: 6%;
+    background: #222121;
+    padding: 1px;
+    border-radius: 10px;
+    border: 0.5px solid #444c56;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Adjust width for smaller screens */
+@media (max-width: 1200px) {
+    .timer-container {
+        width: 8%;
+    }
+}
+
+@media (max-width: 992px) {
+    .timer-container {
+        width: 10%;
+    }
+}
+
+@media (max-width: 768px) {
+    .timer-container {
+        width: 12%;
+    }
+}
+
+@media (max-width: 576px) {
+    .timer-container {
+        width: 15%;
+    }
+}
+
+@media (max-width: 400px) {
+    .timer-container {
+        width: 20%;
+    }
+}
+
+#countdown {
+    font-size: 1em;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.container {
+    width: 80%;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #161b22;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.info-button-container {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.info-button {
+    position: relative;
+    display: inline-block;
+    background-color: #2d333b;
+    color: #c9d1d9;
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 1px solid #444c56;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.info-button:hover {
+    background-color: #3e4551;
+    transform: scale(1.05);
+}
+
+.info-button::after {
+    content: "Please remove cache and try hard reload";
+    position: absolute;
+    top: -125%; /* Adjust the position above the button */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    white-space: nowrap;
+    opacity: 0;
+    z-index: 1;
+    transition: opacity 0.3s;
+}
+
+.info-button:hover::after {
+    opacity: 1;
+}
+
+.info {
+    width: 18%;
+    text-align: center;
+    margin: 0 auto;
+    padding: 5px;
+    background-color: #161b22;
+    box-shadow: 0 0 10px rgba(73, 73, 73, 0.3);
+    border-radius: 8px;
+    margin-top: 20px;
+    border: 1px solid #ffffff; /* Added white border */
+}
+
+h1, h2 {
+    text-align: center;
+    color: #58a6ff;
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    background-color: #21262d;
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #30363d;
+}
+
+th {
+    background-color: #0d1117;
+    color: #58a6ff;
+}
+
+tr:nth-child(even) {
+    background-color: #161b22;
+}
+
+tr:hover {
+    background-color: #2d333b;
+}
+
+td {
+    word-wrap: break-word;
+}
+
+a {
+    color: #4493f8;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.services {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+
+.service-button {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px;
+    margin: 5px;
+    background-color: #2d333b;
+    color: #c9d1d9;
+    text-decoration: none;
+    border-radius: 5px;
+    border: 1px solid #444c56;
+    transition: background-color 0.3s, transform 0.2s;
+    position: relative;
+    cursor: pointer;
+}
+
+.service-button:hover {
+    background-color: #141414;
+    transform: scale(1.05);
+    text-decoration: none;
+}
+
+.service-button::after {
+    content: attr(data-url);
+    position: absolute;
+    bottom: 125%; /* Adjust the position above the button */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.service-button:hover::after {
+    opacity: 1;
+}
+
+.status-circle {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.status-circle-green {
+    background-color: #45cc45;
+}
+
+.status-circle-red {
+    background-color: #f15d5d;
+}
+
+.service-name {
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: middle;
+    font-weight: bold;
+}
