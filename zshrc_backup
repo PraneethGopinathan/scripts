@@ -1,0 +1,716 @@
+# For GPG
+alias coz='code ~/.zshrc'
+export GPG_TTY=$(tty)
+
+export ZSH="$HOME/.oh-my-zsh"
+set guicursor=
+ZSH_THEME="robbyrussell"
+
+plugins=(
+	git
+	zsh-autosuggestions
+	zsh-syntax-highlighting
+)
+fpath+=${ZSH_CUSTOM:-${ZSH:-~/.oh-my-zsh}/custom}/plugins/zsh-completions/src
+source $ZSH/oh-my-zsh.sh
+
+# Show and search .zshrc file
+show() {
+  if [[ -n "$1" ]]; then
+    grep -i "$1" ~/.zshrc | less
+  else
+    cat ~/.zshrc | less
+  fi
+}
+
+alias nv="nvim"
+
+# Common
+alias viz="nvim ~/.zshrc"
+alias nviz="nvim ~/.zshrc"
+alias src="source ~/.zshrc"
+alias secrets="source ~/.env"
+alias sec="bat ~/.env"
+unalias ls 2>/dev/null
+unalias l 2>/dev/null
+unalias ll 2>/dev/null
+l() { clear "$@"; }
+lla() { ls -lahGg "$@"; }
+ll() { ls -lhG "$@"; }
+open() { nautilus "$@"; }
+armada() { cd ~/Documents/repos/armada "$@"; }
+repos() { cd ~/Documents/repos "$@"; }
+ist() { cd ~/Documents/repos/armada/istio-config "$@"; }
+infra() { cd ~/Documents/repos/armada/azure-infrastructure "$@"; }
+others() { cd ~/Documents/others/ "$@"; }
+count() { tail -n +2 | wc -l "$@"; }
+tv() { codechenx-tv "$@"; }
+doc() { cd ~/Documents/ "$@"; }
+dow() { cd ~/Downloads/ "$@"; }
+praneeth() { cd ~/Documents/repos/praneeth "$@"; }
+genpro() { cd ~/Documents/repos/genpro "$@"; }
+dcd() { cd ~/Documents/repos/genpro/disease-context-center "$@"; }
+pub() { cd ~/Documents/repos/genpro/publications "$@"; }
+dsur() { cd ~/Documents/repos/genpro/dsur-automation "$@"; }
+ops() { cd ~/Documents/repos/genpro/devops "$@"; }
+keys() { cd ~/Documents/keys "$@"; }
+jnj() { cd ~/Documents/repos/jnj "$@"; }
+temp() { cd ~/Templates "$@"; }
+
+# Terragrunt
+tg() { terragrunt "$@" }
+# OpenTofu
+# otfp() {
+#   tofu plan -var="config_file_path=$1"
+# }
+# otfa() {
+#   tofu apply -var="config_file_path=$1"
+# }
+# otfd() {
+#   tofu destroy -var="config_file_path=$1"
+# }
+
+opp() {
+  tofu plan
+}
+opa() {
+  tofu apply
+}
+opd() {
+  tofu destroy
+}
+
+function force_delete_namespace() {
+    NAMESPACE=$1
+    kubectl proxy --port=8888 &
+    kubectl get namespace $NAMESPACE -o json | jq '.spec = {"finalizers":[]}' > temp.json
+    curl -k -H "Content-Type: application/json" -X PUT --data-binary @temp.json 127.0.0.1:8888/api/v1/namespaces/$NAMESPACE/finalize
+}
+
+alias deletens=force_delete_namespace
+
+tf() { terraform "$@"; }
+kubex() { kubectl exec -it $1 -- bash "$@"; }
+
+opf() { tofu fmt -recursive "$@"; }
+op() { tofu "$@"; }
+opw() { tofu workspace "$@"; }
+
+# Enhanced OpenTofu functions
+opi() {
+  tofu init -upgrade
+}
+opv() {
+  tofu validate && echo "✅ Configuration is valid"
+}
+opps() {
+  tofu plan -var="config_file_path=$1" -out="plan.tfplan"
+}
+opas() {
+  tofu apply "plan.tfplan"
+}
+opstate() {
+  tofu state list
+}
+opraph() {
+  tofu graph | dot -Tpng > graph.png && open graph.png
+}
+
+# Terraform Aliases/Functions (parallel to OpenTofu)
+tfp() {
+  terraform plan -var="config_file_path=$1"
+}
+tfa() {
+  terraform apply -var="config_file_path=$1"
+}
+tfd() {
+  terraform destroy -var="config_file_path=$1"
+}
+tfi() {
+  terraform init -upgrade
+}
+tfv() {
+  terraform validate && echo "✅ Configuration is valid"
+}
+tfps() {
+  terraform plan -var="config_file_path=$1" -out="plan.tfplan"
+}
+tfas() {
+  terraform apply "plan.tfplan"
+}
+tfstate() {
+  terraform state list
+}
+tgraph() {
+  terraform graph | dot -Tpng > graph.png && open graph.png
+}
+
+# Git
+pull() { git pull origin $(git symbolic-ref --short HEAD) "$@"; }
+push() { git push origin $(git symbolic-ref --short HEAD) "$@"; }
+sts() { git status "$@"; }
+out() { git checkout "$@"; }
+outb() { git checkout -b "$@"; }
+add() { git add "$@"; }
+commit() { git commit -m "$@"; }
+unalias gb 2>/dev/null
+gb() { git branch "$@"; }
+fetch() { git fetch "$@"; }
+gittag() { git for-each-ref --sort=-creatordate --format '%(refname:short) %(creatordate:short)' refs/tags "$@"; }
+unalias gclean 2>/dev/null
+gclean() { git clean -fd -n "$@"; }
+alias lg=lazygit
+
+# Enhanced Git functions - Remove Oh My Zsh aliases to avoid conflicts
+unalias gco 2>/dev/null
+unalias gcm 2>/dev/null
+unalias glog 2>/dev/null
+
+gco() {
+  git checkout $(git branch -a | fzf | sed 's/remotes\/origin\///g' | xargs)
+}
+gcm() {
+  git add . && git commit -m "$1" && git push origin $(git symbolic-ref --short HEAD)
+}
+glog() {
+  git log --oneline --decorate --graph -${1:-10}
+}
+gcleanbranch() {
+  git branch --merged | grep -v '\*\|main\|master\|develop' | xargs -n 1 git branch -d
+}
+
+# Quick directory navigation
+up1() { cd .. }
+up2() { cd ../.. }
+up3() { cd ../../.. }
+
+# Find files/directories quickly
+ff() {
+  find . -type f -name "*$1*" 2>/dev/null
+}
+fd() {
+  find . -type d -name "*$1*" 2>/dev/null
+}
+
+# Docker
+dcl() { docker container ls "$@"; }
+dcll() { docker ps --format "table {{.ID}}\t{{.Status}}\t{{.Names}}" "$@"; }
+dim() { docker images "$@"; }
+drmi() { docker rmi -f "$@"; }
+dx() { docker exec -it "$@"; }
+dcb() { docker compose up --build "$@"; }
+dcbn() { cp .env_secret .env && docker compose build --no-cache && docker compose up "$@"; }
+dcup() { docker compose up "$@"; }
+dcr() { docker compose down --remove-orphans "$@"; }
+dlogs() { docker logs -f "$@"; }
+image-size() { printf "Total Image size is : %.2f GB\n" "$(docker system df --format '{{.Size}}' | head -n 1 | sed 's/[^0-9.]*//g')" "$@"; }
+delete-none() { docker images -a | grep none | awk '{ print $3; }' | xargs docker rmi -f "$@"; }
+drm() { docker rm -f "$@"; }
+image-del() { docker rmi -f $(docker images -q) "$@"; }
+
+# ====================================
+# KUBECTL AUTO-COMPLETION SETUP
+# ====================================
+
+# Load kubectl completion first
+if command -v kubectl >/dev/null 2>&1; then
+  source <(kubectl completion zsh)
+fi
+
+# Kubernetes - Convert simple functions to aliases for better auto-completion
+alias k='kubectl'
+alias kube='kubectl'
+alias kd='kubectl describe'
+alias kg='kubectl get'
+alias kdl='kubectl delete'
+alias kc='kubectl create -f'
+alias ka='kubectl apply -f'
+alias klogs='kubectl logs -f'
+alias kx='kubectl exec -it'
+alias ktp='kubectl top pods'
+alias ktn='kubectl top nodes'
+
+# kubectl get aliases (all converted to aliases)
+alias kge='kubectl get events'
+alias kga='kubectl get all'
+alias kgpy='kubectl get pods -o yaml'
+alias kgp='kubectl get pods'
+alias kgpwa='kubectl get pods --watch'
+alias kgpwide='kubectl get pods -o wide'
+alias kgj='kubectl get jobs'
+alias kgcj='kubectl get cronjobs'
+alias kgjwa='kubectl get job --watch'
+alias kgjwi='kubectl get job -o wide'
+alias kgn='kubectl get nodes'
+alias kgnwa='kubectl get node --watch'
+alias kgnwide='kubectl get node -o wide'
+alias kgsvc='kubectl get svc'
+alias kgvs='kubectl get virtualservice'
+alias kgsvcwa='kubectl get svc --watch'
+alias kgsvcwi='kubectl get svc -o wide'
+alias kgpv='kubectl get pv'
+alias kgpvwa='kubectl get pv --watch'
+alias kgpvwi='kubectl get pv -o wide'
+alias kgpvc='kubectl get pvc'
+alias kgpvcwa='kubectl get pvc --watch'
+alias kgpvcwi='kubectl get pvc -o wide'
+alias kgns='kubectl get ns'
+alias kgnswa='kubectl get ns --watch'
+alias kgnswi='kubectl get ns -o wide'
+alias kgrs='kubectl get rs'
+alias kgsc='kubectl get storageclass'
+alias kgrswa='kubectl get rs --watch'
+alias kgrswi='kubectl get rs -o wide'
+alias kgcm='kubectl get configmap'
+alias kgst='kubectl get secret'
+alias kging='kubectl get ing'
+alias kgingwa='kubectl get ing --watch'
+alias kgingwi='kubectl get ing -o wide'
+alias kghpa='kubectl get hpa'
+alias kgvpa='kubectl get vpa'
+alias kgsm='kubectl get servicemonitor'
+alias kgsa='kubectl get sa'
+alias kgsfs='kubectl get statefulsets'
+alias kgr='kubectl get roles'
+alias kgcr='kubectl get clusterroles'
+alias kgrb='kubectl get rolebinding'
+alias kgcrb='kubectl get clusterrolebindings'
+alias kgd='kubectl get deploy'
+
+# kubectl describe aliases (all converted to aliases)
+alias kdp='kubectl describe pod'
+alias kdj='kubectl describe job'
+alias kdcj='kubectl describe cronjob'
+alias kdd='kubectl describe deploy'
+alias kdn='kubectl describe node'
+alias kdsvc='kubectl describe svc'
+alias kdsc='kubectl describe storageclass'
+alias kdpv='kubectl describe pv'
+alias kdpvc='kubectl describe pvc'
+alias kdns='kubectl describe ns'
+alias kdrs='kubectl describe rs'
+alias kdcm='kubectl describe configmap'
+alias kdst='kubectl describe secret'
+alias kding='kubectl describe ingress'
+alias kdhpa='kubectl describe hpa'
+alias kdvpa='kubectl describe vpa'
+alias kdsm='kubectl describe servicemonitor'
+alias kdsfs='kubectl describe statefulsets'
+alias kdr='kubectl describe role'
+alias kdrb='kubectl describe rolebinding'
+alias kdcr='kubectl describe clusterrole'
+alias kdcrb='kubectl describe clusterrolebindings'
+
+# kubectl delete aliases (all converted to aliases)
+alias kdlp='kubectl delete pod'
+alias kdld='kubectl delete deploy'
+alias kdlhpa='kubectl delete hpa'
+alias kdlsvc='kubectl delete svc'
+alias kdlpvc='kubectl delete pvc'
+alias kdlpv='kubectl delete pv'
+alias kdlst='kubectl delete secret'
+alias kdlj='kubectl delete job'
+alias kdlcj='kubectl delete cronjob'
+alias kdlcm='kubectl delete configmap'
+alias kdlrs='kubectl delete rs'
+alias kdlsc='kubectl delete storageclass'
+alias kdling='kubectl delete ing'
+alias kdlsm='kubectl delete servicemonitor'
+alias kdlsfs='kubectl delete statefulsets'
+
+# Config and misc aliases
+alias kgc='kubectl config get-contexts'
+alias kuc='kubectl config use-context'
+alias kgcc='kubectl config current-context'
+alias krd='kubectl rollout restart deploy'
+alias krsfs='kubectl rollout restart statefulsets'
+
+# Special kubectl functions that NEED to remain as functions (complex logic)
+kapply () { kubectl apply -f - }
+wat() { watch -n 1 -t "$@"; }
+kube-images() { kubectl get node -o json | jq -r '.items[].status.images[].names[]' "$@"; }
+argopwd() { kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d "$@"; }
+
+kbat() {
+  local f
+  f(){ kubectl get "$@" -o yaml | bat -l yaml; }
+  f "$@"
+}
+kcat() {
+  local f
+  f(){ kubectl get "$@" -o yaml; }
+  f "$@"
+}
+
+kimg() {
+    if [ -z "$1" ]; then
+        echo "Usage: kimg <pod-name> [-n namespace]"
+        return 1
+    fi
+    
+    local pod_name="$1"
+    local namespace_flag=""
+    
+    # Parse optional namespace flag
+    shift
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -n|--namespace)
+                namespace_flag="-n $2"
+                shift 2
+                ;;
+            *)
+                shift
+                ;;
+        esac
+    done
+    
+    format_images() {
+        # If it has @sha256:, show registry/image@SHA(12 chars)
+        # Otherwise show as-is (for tagged images)
+        awk -F'@sha256:' '{
+            if (NF > 1) {
+                print $1 "@" substr($2, 1, 12) "..."
+            } else {
+                print $0
+            }
+        }'
+    }
+    
+    # Check if pod exists
+    if ! kubectl get pod "$pod_name" $namespace_flag &>/dev/null; then
+        echo "Error: Pod '$pod_name' not found"
+        return 1
+    fi
+    
+    echo "=== POD: $pod_name ==="
+    
+    # Init containers
+    local init_output=$(kubectl get pod "$pod_name" $namespace_flag -o json | jq -r '.spec.initContainers[]? | "\(.name)\t\(.image)"')
+    if [ -n "$init_output" ]; then
+        echo -e "\n--- INIT CONTAINERS ---"
+        echo "$init_output" | format_images | column -t
+    fi
+    
+    # Regular containers
+    echo -e "\n--- CONTAINERS ---"
+    kubectl get pod "$pod_name" $namespace_flag -o json | jq -r '.spec.containers[] | "\(.name)\t\(.image)"' | format_images | column -t
+    
+    # Optionally show image pull policy and status
+    echo -e "\n--- IMAGE STATUS ---"
+    kubectl get pod "$pod_name" $namespace_flag -o json | jq -r '
+        .status.containerStatuses[]? | 
+        "\(.name)\t\(.imageID // "N/A")\t\(.ready)"
+    ' | awk -F'\t' '{
+        split($2, parts, "@sha256:")
+        if (length(parts) > 1) {
+            printf "%s\t%s@%s...\t%s\n", $1, parts[1], substr(parts[2], 1, 12), ($3 == "true" ? "✓" : "✗")
+        } else {
+            printf "%s\t%s\t%s\n", $1, $2, ($3 == "true" ? "✓" : "✗")
+        }
+    }' | column -t
+}
+
+kgpc() {
+  function _podcontainers() {
+    kubectl get pod $1 -o jsonpath="{range .spec.containers[*]}{.name}{\"\\n\"}{end}"
+  }
+  _podcontainers "$@"
+}
+
+function kgpwi() {
+  local headers=("NAME" "STATUS" "READY" "RESTARTS" "Pod_IP" "PORTS" "AGE" "NODE")
+  local widths=(42 8 8 9 15 20 8 30)
+
+  printf "%-${widths[1]}s %-${widths[2]}s %-${widths[3]}s %-${widths[4]}s %-${widths[5]}s %-${widths[6]}s %-${widths[7]}s %-${widths[8]}s\n" \
+    "${headers[1]}" "${headers[2]}" "${headers[3]}" "${headers[4]}" "${headers[5]}" "${headers[6]}" "${headers[7]}" "${headers[8]}"
+
+  kubectl get pods -o wide --no-headers | while IFS= read -r line; do
+    local pod_name=$(echo "$line" | awk '{print $1}')
+    local pod_status=$(echo "$line" | awk '{print $3}')
+    local ready=$(echo "$line" | awk '{print $2}' | cut -d'/' -f1)
+    local ip=$(echo "$line" | awk '{print $6}')
+    local node=$(echo "$line" | awk '{print $7}')
+    local age=$(echo "$line" | awk '{print $5}')
+
+    local pod_json=$(kubectl get pod "$pod_name" -o json 2>/dev/null)
+    [ -z "$pod_json" ] && continue
+
+    local restarts=$(jq -r '.status.containerStatuses[0].restartCount' <<< "$pod_json")
+    local ready_state=$(jq -r '.status.containerStatuses[0].ready' <<< "$pod_json")
+    local ports=$(jq -r '[.spec.containers[].ports[]?.containerPort] | join(",")' <<< "$pod_json")
+
+    printf "%-${widths[1]}s %-${widths[2]}s %-${widths[3]}s %-${widths[4]}s %-${widths[5]}s %-${widths[6]}s %-${widths[7]}s %-${widths[8]}s\n" \
+      "${pod_name:0:${widths[1]}}" \
+      "$pod_status" \
+      "$([ "$ready_state" = "true" ] && echo "Ready" || echo "NotReady")" \
+      "${restarts:-0}" \
+      "$ip" \
+      "${ports:-none}" \
+      "$age" \
+      "$node"
+  done
+}
+
+# Functions with -n namespace flag (keep as functions)
+kgpn() { kubectl get pods -n "$@"; }
+kgpnwide() { kubectl get pods -o wide -n "$@"; }
+kgpnwatch() { kubectl get --watch -n "$@"; }
+kdpn() { kubectl describe pod -n "$@"; }
+
+# Function with multiple arguments (keep as function)
+krdn() { kubectl rollout restart deploy $1 -n $2; }
+
+kgperr() { kubectl get pods -A | grep -E '(Error|CrashLoopBackOff|ImagePullBackOff)' "$@"; }
+
+# Define all kubectl aliases for auto-completion
+kubectl_aliases=(
+  # Core aliases
+  k kube ka kapply klogs kx kc kdl kd kg ktp ktn kbat kcat wat
+
+  # kubectl get aliases
+  kge kga kgpy kgp kgperr kgpwa kgpwide kgj kgcj kgjwa kgjwi kgn kgnwa
+  kgnwide kgsvc kgvs kgsvcwa kgsvcwi kgpv kgpvwa kgpvwi kgpvc kgpvcwa
+  kgpvcwi kgns kgnswa kgnswi kgrs kgsc kgrswa kgrswi kgcm kgst kging
+  kgingwa kgingwi kghpa kgvpa kgsm kgsa kgsfs kgr kgcr kgrb kgcrb kgpn
+  kgpnwide kgpnwatch kgd
+
+  # kubectl describe aliases
+  kdp kdpn kdj kdcj kdd kdn kdsvc kdsc kdpv kdpvc kdns kdrs kdcm kdst
+  kding kdhpa kdvpa kdsm kdsfs kdr kdrb kdcr kdcrb
+
+  # kubectl delete aliases
+  kdlp kdld kdlhpa kdlsvc kdlpvc kdlpv kdlst kdlj kdlcj kdlcm kdlrs
+  kdlsc kdling kdlsm kdlsfs
+
+  # kubectl config and misc
+  kgc kuc kgcc krd krsfs krdn
+
+  # Special functions
+  kgpc kgpwi force_delete_namespace deletens
+)
+
+# Apply kubectl completion to all aliases and functions
+for alias_name in "${kubectl_aliases[@]}"; do
+  compdef _kubectl "$alias_name"
+done
+
+# Special completion for kubectl context/namespace tools (if you have kubectx/kubens)
+if command -v kubectx >/dev/null 2>&1; then
+  compdef _kubectx ktx
+fi
+
+if command -v kubens >/dev/null 2>&1; then
+  compdef _kubens kns
+fi
+
+
+# Krew
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+
+ktx() { kubectx "$@"; }
+kns() { kubens "$@"; }
+knsc() { kubectl config view --minify | grep namespace: "$@"; }
+autoload -U compinit && compinit
+
+# Minikube
+alias mil="minikube image load "
+alias mir="minikube image rm "
+
+# Network
+alias myip="curl -4 ifconfig.io"
+alias mk="make"
+
+# System monitoring & process management
+psg() {
+  ps aux | grep -i "$1" | grep -v grep
+}
+ports() {
+  netstat -tuln | grep ":$1 "
+}
+killp() {
+  kill -9 $(psg "$1" | awk '{print $2}')
+}
+weather() {
+  curl -s "wttr.in/${1:-}" | head -n 17
+}
+
+# Enhanced file operations with safety
+backup() {
+  cp "$1" "$1.backup.$(date +%Y%m%d_%H%M%S)"
+}
+extract() {
+  if [ -f "$1" ]; then
+    case "$1" in
+      *.tar.bz2) tar xjf "$1" ;;
+      *.tar.gz) tar xzf "$1" ;;
+      *.bz2) bunzip2 "$1" ;;
+      *.rar) unrar x "$1" ;;
+      *.gz) gunzip "$1" ;;
+      *.tar) tar xf "$1" ;;
+      *.tbz2) tar xjf "$1" ;;
+      *.tgz) tar xzf "$1" ;;
+      *.zip) unzip "$1" ;;
+      *.Z) uncompress "$1" ;;
+      *.7z) 7z x "$1" ;;
+      *) echo "Unknown archive format" ;;
+    esac
+  else
+    echo "File not found"
+  fi
+}
+
+# ~/.starship
+eval "$(starship init zsh)"
+export PATH="/opt/homebrew/opt/postgresql@16/bin:$PATH"
+export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
+
+# Azure
+alias azsublist='az account list --output table | awk '\''!/True/ {print $0} /True/ {print "\033[0;32m" $0 "\033[0m"}'\'''
+alias azsetsub='az account set --subscription '
+alias azcache='az logout && az cache purge && az login'
+export PATH="/opt/homebrew/opt/postgresql@16/bin:/Users/praneeth/.krew/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Applications/iTerm.app/Contents/Resources/utilities:/Applications/Visual Studio Code.app/Contents/Resources/app/bin:/opt/homebrew/bin"
+
+# Restore I-beam cursor when exiting vim or tmux
+function _fix_cursor() {
+   echo -ne '\e[5 q'
+}
+precmd_functions+=(_fix_cursor)
+
+# Function to create the k8s context right prompt
+function k8s_rprompt() {
+  if command -v kubectl &>/dev/null; then
+    local context_name=$(kubectl config current-context 2>/dev/null)
+    if [[ -n "$context_name" ]]; then
+      local namespace=$(kubectl config view --minify --output 'jsonpath={..namespace}' 2>/dev/null)
+      namespace=${namespace:-"default"}
+      echo "%B%F{yellow}⎈ ${context_name}%f%b %F{cyan}[${namespace}]%f"
+    fi
+  fi
+}
+
+function set_k8s_rprompt() {
+  RPROMPT="$(k8s_rprompt)"
+}
+
+precmd_functions+=(set_k8s_rprompt)
+export KUBE_EDITOR=nvim
+export EDITOR=nvim
+
+# Environment variables organization
+export HISTSIZE=50000
+export SAVEHIST=50000
+export HISTFILE=~/.zsh_history
+setopt SHARE_HISTORY
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_IGNORE_SPACE
+
+# Help system for custom functions
+zhelp() {
+  echo "🚀 Custom Functions & Aliases:"
+  echo ""
+  echo "📁 OpenTofu:"
+  echo "  tfp <config>    - Plan with config file"
+  echo "  tfa <config>    - Apply with config file"
+  echo "  tfd <config>    - Destroy with config file"
+  echo "  tfi             - Init with upgrade"
+  echo "  tfv             - Validate configuration"
+  echo "  tfps <config>   - Plan and save to file"
+  echo "  tfas            - Apply saved plan"
+  echo "  tfstate         - List state resources"
+  echo "  tgraph          - Generate dependency graph"
+  echo ""
+  echo "📂 Git Enhanced:"
+  echo "  gcm 'message'   - Add, commit, and push"
+  echo "  gco             - Interactive branch checkout"
+  echo "  glog [n]        - Pretty git log (default 10)"
+  echo "  gclean          - Delete merged branches"
+  echo ""
+  echo "🔍 System:"
+  echo "  psg <process>   - Find process by name"
+  echo "  ports <port>    - Check port usage"
+  echo "  killp <process> - Kill process by name"
+  echo "  weather [city]  - Get weather forecast"
+  echo "  backup <file>   - Create timestamped backup"
+  echo "  extract <file>  - Extract any archive"
+  echo "  ff <name>       - Find files by name"
+  echo "  fd <name>       - Find directories by name"
+  echo ""
+  echo "📁 Navigation:"
+  echo "  up1             - Go up one directory"
+  echo "  up2             - Go up two directories"
+  echo "  up3             - Go up three directories"
+  echo ""
+  echo "🎮 Fun Extras:"
+  echo "  matrix          - Cool matrix effect (Ctrl+C to exit)"
+  echo "  coinflip        - Flip a coin"
+  echo "  dice            - Roll a dice"
+  echo "  quote           - Random inspirational dev quote"
+  echo "  now             - Current timestamp"
+  echo ""
+}
+
+# Load completion system
+autoload -Uz compinit
+compinit
+
+# Fun utilities
+matrix() {
+  echo -e "\e[1;40m" ; clear ; while :; do echo $LINES $COLUMNS $(( $RANDOM % $COLUMNS)) $(( $RANDOM % 72 )) ; sleep 0.05; done | awk '{ letters="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()"; c=$4; letter=substr(letters,c,1);a[$3]=0;for (x in a) {o=a[x];a[x]=a[x]+1; printf "\033[%s;%sH\033[2;32m%s",o,x,letter; printf "\033[%s;%sH\033[1;37m%s\033[0;0H",a[x],x,letter;if (a[x] >= $1) { a[x]=0; } }}'
+}
+
+coinflip() {
+  if [ $((RANDOM % 2)) -eq 0 ]; then
+    echo "🪙 Heads!"
+  else
+    echo "🪙 Tails!"
+  fi
+}
+
+dice() {
+  echo "🎲 You rolled: $((RANDOM % 6 + 1))"
+}
+
+quote() {
+  local quotes=(
+    "Code is like humor. When you have to explain it, it's bad. - Cory House"
+    "First, solve the problem. Then, write the code. - John Johnson"
+    "The best error message is the one that never shows up. - Thomas Fuchs"
+    "Clean code always looks like it was written by someone who cares. - Michael Feathers"
+    "Programming isn't about what you know; it's about what you can figure out. - Chris Pine"
+    "The only way to learn a new programming language is by writing programs in it. - Dennis Ritchie"
+  )
+  local random_index=$((RANDOM % ${#quotes[@]}))
+  echo ""
+  echo "💭 ${quotes[$((random_index + 1))]}"
+  echo ""
+}
+
+# Quick utilities
+now() { date "+%Y-%m-%d %H:%M:%S" "$@"; }
+
+# Mac-specific utilities
+showfiles() { defaults write com.apple.finder AppleShowAllFiles YES && killall Finder "$@"; }
+hidefiles() { defaults write com.apple.finder AppleShowAllFiles NO && killall Finder "$@"; }
+flushdns() { sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder "$@"; }
+battery() { pmset -g batt | grep -E "([0-9]+\%).*" -o | head -1 "$@"; }
+cpuinfo() { sysctl -n machdep.cpu.brand_string "$@"; }
+meminfo() { vm_stat | head -10 "$@"; }
+guntracked() { git ls-files --others --exclude-standard "$@"; }
+gcleanall() { git clean -fd -n "$@"; }
+gcleanforce() { git clean -fd "$@"; }
+
+# Enable alias expansion
+setopt aliases
+
+# History settings
+HISTSIZE=10000
+SAVEHIST=10000
+HISTFILE=~/.zsh_history
+setopt SHARE_HISTORY
+setopt APPEND_HISTORY
+setopt INC_APPEND_HISTORY
+export FUNCNEST=1000
+alias pip="pip3"
+export PATH="$HOME/Documents/scripts:$PATH"
+
